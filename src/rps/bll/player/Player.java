@@ -49,7 +49,7 @@ public class Player implements IPlayer {
         //Historic data to analyze and decide next move...
         ArrayList<Result> results = (ArrayList<Result>) state.getHistoricResults();
 
-        //Implement better AI here...
+        //TODO: Fancy logic or something
         return Move.Rock;
     }
 }
