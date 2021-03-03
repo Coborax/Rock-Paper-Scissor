@@ -39,7 +39,7 @@
                      <graphic>
                         <ImageView fitHeight="150.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@../../../../resources/rock.png" />
+                              <Image url="@../../../resources/rock.png" />
                            </image>
                         </ImageView>
                      </graphic>
@@ -60,7 +60,7 @@
                      <graphic>
                         <ImageView fitHeight="150.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@../../../../resources/paper.png" />
+                              <Image url="@../../../resources/paper.png" />
                            </image>
                         </ImageView>
                      </graphic>
@@ -81,7 +81,7 @@
                      <graphic>
                         <ImageView fitHeight="150.0" fitWidth="100.0" pickOnBounds="true" preserveRatio="true">
                            <image>
-                              <Image url="@../../../../resources/scissors.png" />
+                              <Image url="@../../../resources/scissors.png" />
                            </image>
                         </ImageView>
                      </graphic>
