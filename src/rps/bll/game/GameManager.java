@@ -16,6 +16,8 @@ public class GameManager {
     private IGameState gameState;
     private IPlayer bot;
     private IPlayer human;
+    public static Move human_move;
+    public static Move bot_move;
 
     /**
      * Initializes the GameManager with IPlayers
@@ -35,7 +37,10 @@ public class GameManager {
      * @param human_move The next user move
      */
     public Result playRound(Move human_move) {
+        GameManager.human_move = human_move;
         Move bot_move = bot.doMove(gameState); //ask the bot to make a move...
+        GameManager.bot_move = bot_move;
+
         Result result;
         int roundNumber = gameState.getRoundNumber();
 

@@ -1,12 +1,15 @@
 package rps.bll.player;
 
 //Project imports
+import rps.bll.game.GameManager;
 import rps.bll.game.IGameState;
 import rps.bll.game.Move;
 import rps.bll.game.Result;
 
 //Java imports
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Example implementation of a player.
@@ -17,6 +20,11 @@ public class Player implements IPlayer {
 
     private String name;
     private PlayerType type;
+
+    private Random rand = new Random();
+    private int[][] chain;
+    private Move latest = null;
+    private int round;
 
     /**
      * @param name
@@ -39,6 +47,43 @@ public class Player implements IPlayer {
     }
 
 
+    private void updateChain(Move prev, Move next) {
+        chain[prev.ordinal()][next.ordinal()]++;
+    }
+
+    private Move nextMove(Move prev) {
+
+        if (round == 1) {
+            int len = Move.values().length;
+            chain = new int[len][len];
+
+            for (int i = 0; i < len; i++) {
+                for (int j = 0; j < len; j++) {
+                    chain[i][j] = 0;
+                }
+            }
+
+            return Move.values()[rand.nextInt(Move.values().length)];
+        }
+
+        int nextIndex = 0;
+
+        for (int i = 0; i < Move.values().length; i++) {
+            int prevIndex = prev.ordinal();
+
+            if (chain[prevIndex][i] > chain[prevIndex][nextIndex]) {
+                nextIndex = i;
+                System.out.println(nextIndex);
+            }
+        }
+
+        Move predNext = Move.values()[nextIndex];
+
+        List<Move> loses = predNext.loses;
+
+        return loses.get(rand.nextInt(loses.size()));
+    }
+
     /**
      * Decides the next move for the bot...
      * @param state Contains the current game state including historic moves/results
@@ -46,73 +91,18 @@ public class Player implements IPlayer {
      */
     @Override
     public Move doMove(IGameState state) {
+        round = state.getRoundNumber();
         //Historic data to analyze and decide next move...
         ArrayList<Result> results = (ArrayList<Result>) state.getHistoricResults();
 
-        //Get a random move if there are no results yet
-        if (results.isEmpty()) {
-            return getRandomMove(new ArrayList<Move>(Arrays.asList(Move.values())));
+        Move move = nextMove(latest);
+
+        if (latest != null) {
+            updateChain(latest, GameManager.human_move);
         }
 
-        List<Move> possibleMoves = getPossibleMovesFromResults(results, 2);
+        latest = GameManager.human_move;
 
-        return getOppositeMove(getRandomMove(possibleMoves));
-    }
-
-    private Move getRandomMove(List<Move> moves) {
-        Random rand = new Random();
-        return moves.get(rand.nextInt(moves.size()));
-    }
-
-    private Move getOppositeMove(Move move) {
-        switch (move) {
-            case Rock -> { return Move.Paper; }
-            case Paper -> { return Move.Scissor; }
-            case Scissor -> { return Move.Rock; }
-        }
-        throw new NullPointerException();
-    }
-
-    private List<Move> getPossibleMovesFromResults(List<Result> results, int amount) {
-        ArrayList<Move> resultList = new ArrayList<>();
-        HashMap<Move, Integer> playerMoveCounts = new HashMap<>();
-
-        for (Result result : results) {
-            Move playerMove;
-            //Get the players last move
-            if (result.getWinnerPlayer().getPlayerType() == PlayerType.Human) {
-                playerMove = result.getWinnerMove();
-            } else {
-                playerMove = result.getLoserMove();
-            }
-
-            if (playerMoveCounts.containsKey(playerMove)) {
-                playerMoveCounts.put(playerMove, playerMoveCounts.get(playerMove) + 1);
-            } else {
-                playerMoveCounts.put(playerMove, 0);
-            }
-        }
-
-        List<Map.Entry<Move, Integer>> tempList = new ArrayList<>(playerMoveCounts.entrySet());
-
-        Collections.sort(tempList, new Comparator<Map.Entry<Move, Integer>>() {
-            @Override
-            public int compare(Map.Entry<Move, Integer> o1, Map.Entry<Move, Integer> o2) {
-                return (o1.getValue().compareTo(o2.getValue()));
-            }
-        });
-
-        if (tempList.size() > amount) {
-            for (int i = 0; i < tempList.size() - amount; i++) {
-                tempList.remove(0);
-            }
-        }
-        
-        for (Map.Entry<Move, Integer> move : tempList) {
-            resultList.add(move.getKey());
-        }
-
-
-        return resultList;
+        return move;
     }
 }
