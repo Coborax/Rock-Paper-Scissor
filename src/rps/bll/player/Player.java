@@ -6,8 +6,7 @@ import rps.bll.game.Move;
 import rps.bll.game.Result;
 
 //Java imports
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Example implementation of a player.
@@ -52,41 +51,68 @@ public class Player implements IPlayer {
 
         //Get a random move if there are no results yet
         if (results.isEmpty()) {
-            return getRandomMove(Move.values());
+            return getRandomMove(new ArrayList<Move>(Arrays.asList(Move.values())));
         }
 
-        Result lastResult = results.get(results.size() - 1);
-        Move playerLastMove;
+        List<Move> possibleMoves = getPossibleMovesFromResults(results, 2);
 
-        //Get the players last move
-        if (lastResult.getWinnerPlayer().getPlayerType() == PlayerType.Human) {
-            playerLastMove = lastResult.getWinnerMove();
-        } else {
-            playerLastMove = lastResult.getLoserMove();
-        }
-
-        // Decide the new move, based on the players last move. (Will pick a random of the two)
-        // +=============+=================================+=================================+
-        // | Player Move | Player possible move (Bot Move) | Player possible move (Bot Move) |
-        // +=============+=================================+=================================+
-        // | Rock        | Scissor (Rock)                  | Paper (Scissor)                 |
-        // +-------------+---------------------------------+---------------------------------+
-        // | Paper       | Rock (Paper)                    | Scissor (Rock)                  |
-        // +-------------+---------------------------------+---------------------------------+
-        // | Scissor     | Paper (Scissor)                 | Rock (Paper)                    |
-        // +-------------+---------------------------------+---------------------------------+
-        Move move = playerLastMove;
-        switch (playerLastMove) {
-            case Rock -> move = getRandomMove(Move.Rock, Move.Scissor);
-            case Paper -> move = getRandomMove(Move.Paper, Move.Rock);
-            case Scissor -> move = getRandomMove(Move.Scissor, Move.Paper);
-        }
-
-        return move;
+        return getOppositeMove(getRandomMove(possibleMoves));
     }
 
-    private Move getRandomMove(Move... moves) {
+    private Move getRandomMove(List<Move> moves) {
         Random rand = new Random();
-        return moves[rand.nextInt(moves.length)];
+        return moves.get(rand.nextInt(moves.size()));
+    }
+
+    private Move getOppositeMove(Move move) {
+        switch (move) {
+            case Rock -> { return Move.Paper; }
+            case Paper -> { return Move.Scissor; }
+            case Scissor -> { return Move.Rock; }
+        }
+        throw new NullPointerException();
+    }
+
+    private List<Move> getPossibleMovesFromResults(List<Result> results, int amount) {
+        ArrayList<Move> resultList = new ArrayList<>();
+        HashMap<Move, Integer> playerMoveCounts = new HashMap<>();
+
+        for (Result result : results) {
+            Move playerMove;
+            //Get the players last move
+            if (result.getWinnerPlayer().getPlayerType() == PlayerType.Human) {
+                playerMove = result.getWinnerMove();
+            } else {
+                playerMove = result.getLoserMove();
+            }
+
+            if (playerMoveCounts.containsKey(playerMove)) {
+                playerMoveCounts.put(playerMove, playerMoveCounts.get(playerMove) + 1);
+            } else {
+                playerMoveCounts.put(playerMove, 0);
+            }
+        }
+
+        List<Map.Entry<Move, Integer>> tempList = new ArrayList<>(playerMoveCounts.entrySet());
+
+        Collections.sort(tempList, new Comparator<Map.Entry<Move, Integer>>() {
+            @Override
+            public int compare(Map.Entry<Move, Integer> o1, Map.Entry<Move, Integer> o2) {
+                return (o1.getValue().compareTo(o2.getValue()));
+            }
+        });
+
+        if (tempList.size() > amount) {
+            for (int i = 0; i < tempList.size() - amount; i++) {
+                tempList.remove(0);
+            }
+        }
+        
+        for (Map.Entry<Move, Integer> move : tempList) {
+            resultList.add(move.getKey());
+        }
+
+
+        return resultList;
     }
 }
